@@ -15,5 +15,6 @@
 @property (strong, nonatomic) IBOutlet UILabel *descriptionLabel;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *imageHorizontalConstraint;
 @property (weak, nonatomic) IBOutlet NSLayoutConstraint *titleLabelHeightConstraint;
+@property (weak, nonatomic) IBOutlet UITextField *inputUser;
 
 @end

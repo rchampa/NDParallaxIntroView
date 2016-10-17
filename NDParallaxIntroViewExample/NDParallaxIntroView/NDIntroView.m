@@ -8,23 +8,34 @@
 
 #import "NDIntroView.h"
 #import "NDIntroPageView.h"
+#import "NDPageA.h"
+#import "NDPageB.h"
+#import "NDPageC.h"
+#import "NDPageD.h"
 
-@interface NDIntroView () <UIScrollViewDelegate>
+@interface NDIntroView () <UIScrollViewDelegate,NextClickDelegate,NDPageBDelegate>
 @property (strong, nonatomic) UIScrollView *scrollView;
 @property (strong, nonatomic) UIScrollView *parallaxBackgroundScrollView;
 
 @property (strong, nonatomic) NSMutableArray<UIView *> *pageViews;
 @property (strong, nonatomic) NSArray <NSDictionary*> *onboardContentArray;
 
+@property BOOL showPageControl;
+@property int pages;
+
 @end
 
 @implementation NDIntroView
 
-- (id)initWithFrame:(CGRect)frame parallaxImage:(UIImage *)parallaxImage andData:(NSArray *)data {
+- (id)initWithFrame:(CGRect)frame parallaxImage:(UIImage *)parallaxImage andData:(NSArray *)data withNumPages:(int)pages showPageControl:(BOOL)show {
     self = [super initWithFrame:frame];
     if(self) {
+        self.pages = pages;
         self.onboardContentArray = data;
-        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-50, 0, self.scrollView.frame.size.width * self.onboardContentArray.count, self.frame.size.height)];
+        self.showPageControl = show;
+//        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-50, 0, self.scrollView.frame.size.width * self.onboardContentArray.count, self.frame.size.height)];
+        UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(-50, 0, self.scrollView.frame.size.width * pages, self.frame.size.height)];
+        
         [imageView setImage:parallaxImage];
         imageView.contentMode = UIViewContentModeLeft;
         [self.parallaxBackgroundScrollView addSubview:imageView];
@@ -45,20 +56,42 @@
     self.pageControl.currentPage = roundf(pageFraction);
     CGFloat backgroundScrollValue = 0.5f;//self.backgroundImage.size.width/self.onboardContentArray.count/self.frame.size.width;
     [self.parallaxBackgroundScrollView setContentOffset:CGPointMake(self.scrollView.contentOffset.x  * backgroundScrollValue, self.scrollView.contentOffset.y) animated:NO];
+    NSLog(@"%ld",self.pageControl.currentPage);
+    
+    
+    
 }
 
 - (void)generateIntroPageViews {
-    [self.onboardContentArray enumerateObjectsUsingBlock:^(NSDictionary *pageDict, NSUInteger idx, BOOL *stop) {
-        NDIntroPageView *pageView = [[[NSBundle mainBundle] loadNibNamed:@"NDIntroPageView" owner:nil options:nil] lastObject];
-        pageView.frame = CGRectMake(self.frame.size.width * idx, 0, self.frame.size.width, self.frame.size.height);
-        pageView.titlelabel.text = (pageDict[kNDIntroPageTitle]) ? pageDict[kNDIntroPageTitle] : @"nil";
-        pageView.descriptionLabel.text = (pageDict[kNDIntroPageDescription]) ? pageDict[kNDIntroPageDescription] : @"";
-        pageView.imageView.image = [[UIImage imageNamed:(pageDict[kNDIntroPageImageName]) ? pageDict[kNDIntroPageImageName] : @""] imageWithRenderingMode:UIImageRenderingModeAlwaysOriginal];
-        pageView.imageHorizontalConstraint.constant = ([pageDict[kNDIntroPageImageHorizontalConstraintValue] floatValue]) ? [pageDict[kNDIntroPageImageHorizontalConstraintValue] floatValue] : -130.f;
-        pageView.titleLabelHeightConstraint.constant = ([pageDict[kNDIntroPageTitleLabelHeightConstraintValue] floatValue]) ? [pageDict[kNDIntroPageTitleLabelHeightConstraintValue] floatValue] : 80.f;
-        if (self.onboardContentArray.count - 1 == idx) [pageView addSubview:self.lastPageButton];
-        [self.scrollView addSubview:pageView];
-    }];
+    
+    int page = 0;
+    
+    NDPageA *pageView0 = [[[NSBundle mainBundle] loadNibNamed:@"NDPageA" owner:nil options:nil] lastObject];
+    pageView0.frame = CGRectMake(self.frame.size.width *page, 0, self.frame.size.width, self.frame.size.height);
+    pageView0.delegate = self;
+    [self.scrollView addSubview:pageView0];
+    page++;
+    
+    NDPageB *pageView1 = [[[NSBundle mainBundle] loadNibNamed:@"NDPageB" owner:nil options:nil] lastObject];
+    pageView1.frame = CGRectMake(self.frame.size.width *page, 0, self.frame.size.width, self.frame.size.height);
+    //pageView1.buttonNext.hidden = YES;
+    pageView1.textfieldCode.hidden = YES;
+    pageView1.delegate = self;
+    [self.scrollView addSubview:pageView1];
+    page++;
+    
+    NDPageC *pageView2 = [[[NSBundle mainBundle] loadNibNamed:@"NDPageC" owner:nil options:nil] lastObject];
+    pageView2.frame = CGRectMake(self.frame.size.width *page, 0, self.frame.size.width, self.frame.size.height);
+    pageView2.delegate = self;
+    [self.scrollView addSubview:pageView2];
+    page++;
+    
+    NDPageD *pageView3 = [[[NSBundle mainBundle] loadNibNamed:@"NDPageD" owner:nil options:nil] lastObject];
+    pageView3.frame = CGRectMake(self.frame.size.width *page, 0, self.frame.size.width, self.frame.size.height);
+    pageView3.delegate = self;
+    [self.scrollView addSubview:pageView3];
+    page++;
+    
 }
 
 -(UIScrollView *)scrollView {
@@ -66,11 +99,40 @@
         _scrollView = [[UIScrollView alloc] initWithFrame:self.frame];
         _scrollView.delegate = self;
         _scrollView.pagingEnabled = YES;
-        _scrollView.contentSize = CGSizeMake(self.frame.size.width * self.onboardContentArray.count, self.scrollView.frame.size.height);
+//        _scrollView.contentSize = CGSizeMake(self.frame.size.width * self.onboardContentArray.count, self.scrollView.frame.size.height);
+        _scrollView.contentSize = CGSizeMake(self.frame.size.width * self.pages, self.scrollView.frame.size.height);
         _scrollView.showsHorizontalScrollIndicator = NO;
         [_scrollView setContentOffset:CGPointMake(0, 0) animated:YES];
     }
     return _scrollView;
+}
+
+-(UIPageControl *)pageControl {
+    if (!_pageControl) {
+        
+        int x = -10;
+        int y = -10;
+        int w = 0;
+        int h = 0;
+        if(self.showPageControl){
+            x = 0;
+            y = self.frame.size.height-80;
+            w = self.frame.size.width;
+            h = 10;
+        }
+        
+        _pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(x, y, w, h)];
+        _pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
+        //_pageControl.numberOfPages = self.onboardContentArray.count;
+        _pageControl.numberOfPages = self.pages;
+    }
+    return _pageControl;
+}
+-(void) updatePages:(int)num_pages{
+    self.pages = num_pages;
+    _pageControl.numberOfPages = num_pages;
+    _scrollView.contentSize = CGSizeMake(self.frame.size.width * num_pages, self.scrollView.frame.size.height);
+    
 }
 
 -(UIScrollView *)parallaxBackgroundScrollView {
@@ -86,15 +148,6 @@
     return _parallaxBackgroundScrollView;
 }
 
--(UIPageControl *)pageControl {
-    if (!_pageControl) {
-        _pageControl = [[UIPageControl alloc] initWithFrame:CGRectMake(0, self.frame.size.height-80, self.frame.size.width, 10)];
-        _pageControl.currentPageIndicatorTintColor = [UIColor whiteColor];
-        _pageControl.numberOfPages = self.onboardContentArray.count;
-    }
-    return _pageControl;
-}
-
 -(UIButton *)lastPageButton {
     if (!_lastPageButton) {
         _lastPageButton = [[UIButton alloc] initWithFrame:CGRectMake(20, self.frame.size.height-60, self.frame.size.width - 40, 40)];
@@ -106,6 +159,27 @@
         [_lastPageButton addTarget:self.delegate action:@selector(launchAppButtonPressed) forControlEvents:UIControlEventTouchUpInside];
     }
     return _lastPageButton;
+}
+
+-(void)goToNextPage{
+    [self changePage:(int)self.pageControl.currentPage+1];
+}
+-(void)goToPreviousPage{
+    [self changePage:(int)self.pageControl.currentPage-1];
+}
+-(void)onClickValidateInput{
+    [self updatePages:4];
+    [self goToNextPage];
+}
+
+-(void)changePage:(int)num_page{
+    CGRect frame = self.scrollView.frame;
+    frame.origin.x = frame.size.width * num_page;
+    frame.origin.y = 0;
+    [self.scrollView scrollRectToVisible:frame animated:YES];
+}
+-(void)updateNumPages:(int)num_pages{
+    [self updatePages:num_pages];
 }
 
 @end

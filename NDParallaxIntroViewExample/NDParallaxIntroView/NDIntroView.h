@@ -8,11 +8,14 @@
 
 #import <UIKit/UIKit.h>
 
-static NSString *const kNDIntroPageTitle = @"title";
-static NSString *const kNDIntroPageDescription = @"description";
-static NSString *const kNDIntroPageImageName = @"imageName";
-static NSString *const kNDIntroPageTitleLabelHeightConstraintValue = @"titleLabelHeightConstraint";
-static NSString *const kNDIntroPageImageHorizontalConstraintValue = @"imageHorizontalConstraint";
+static NSString *const kNibName                                 	= @"nibName";
+static NSString *const kNDIntroPageTitle                            = @"title";
+static NSString *const kNDIntroPageDescription                      = @"description";
+static NSString *const kNDIntroPageImageName                        = @"imageName";
+static NSString *const kNDIntroPageTitleLabelHeightConstraintValue  = @"titleLabelHeightConstraint";
+static NSString *const kNDIntroPageImageHorizontalConstraintValue   = @"imageHorizontalConstraint";
+
+static NSString *const kNDShowInputUser= @"showInputUser";
 
 @protocol NDIntroViewDelegate <NSObject>
 
@@ -28,6 +31,7 @@ static NSString *const kNDIntroPageImageHorizontalConstraintValue = @"imageHoriz
 @property (strong, nonatomic) UIButton *lastPageButton;
 @property (strong, nonatomic) UIPageControl *pageControl;
 
-- (id)initWithFrame:(CGRect)frame parallaxImage:(UIImage *)parallaxImage andData:(NSArray *)data;
+- (id)initWithFrame:(CGRect)frame parallaxImage:(UIImage *)parallaxImage andData:(NSArray *)data withNumPages:(int)pages showPageControl:(BOOL)show;
+- (void)updatePages:(int)num_pages;
 
 @end
